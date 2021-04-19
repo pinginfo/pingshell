@@ -42,16 +42,17 @@ int main(int argc, char *argv[]) {
     if (fgets(buff, SIZE, stdin) != NULL) {
       if (bufferToCommand(buff, &cmd) == -1) {
         fprintf(stderr, "cannot read the command\n");
-        free_command(&cmd);
+        free_command(cmd);
         continue;
       }
-      if (strncmp(cmd.argv[0], "exit", 5) == 0) exitShell();
-      else if (strncmp(cmd.argv[0], "cd", 2) == 0) moveDir(cmd);
+      if (strncmp(cmd.argv[0], "exit", 5) == 0) {
+        free_command(cmd);
+        exitShell();
+      } else if (strncmp(cmd.argv[0], "cd", 2) == 0) moveDir(cmd);
       else execCommand(cmd);
-      free_command(&cmd);
+      free_command(cmd);
     }
   }
 
-  free_command(&cmd);
   return 0;
 }

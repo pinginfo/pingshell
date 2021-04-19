@@ -1,13 +1,8 @@
 #include "command.h"
 
-void free_command(struct command *cmd) {
-  // TODO :)
-  for (int i = 0; i <= cmd->argc; i++) {
-    free(cmd->argv[i]);
-  }
-  free(cmd->output);
-  free(cmd->argv);
-  if (cmd->next_command != NULL) { free_command(cmd->next_command); }
+void free_command(struct command cmd) {
+  free(cmd.argv);
+  if (cmd.next_command != NULL) { free_command(*cmd.next_command); }
 }
 
 int bufferToCommand(char *input, struct command *cmd) {
@@ -32,8 +27,8 @@ int bufferToCommand(char *input, struct command *cmd) {
 
       buffer = strtok(NULL, s);
       while (buffer != NULL) {
+        if (result_pipe == NULL) { result_pipe = malloc(sizeof(void*)); }
         result_pipe = realloc(result_pipe, sizeof(void*) * (nb_args_pipe + 1));
-        result_pipe[nb_args_pipe] = malloc(sizeof(char*) * SIZE);
         result_pipe[nb_args_pipe] = buffer;
         nb_args_pipe++;
         buffer = strtok(NULL, s);
@@ -54,8 +49,6 @@ int bufferToCommand(char *input, struct command *cmd) {
       break;
     } else {
       result = realloc(result, sizeof(void*) * (nb_args + 1));
-      fprintf(stderr, "test = %s\n", buffer);
-      result[nb_args] = malloc(sizeof(char*) * SIZE);
       result[nb_args] = buffer;
       nb_args++;
     }

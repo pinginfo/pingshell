@@ -18,6 +18,6 @@ typedef struct command {
   struct command* next_command;
 } command;
 
-void free_command(struct command *cmd);
+void free_command(struct command cmd);
 int bufferToCommand(char *input, struct command *cmd);
 #endif

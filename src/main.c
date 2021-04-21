@@ -62,6 +62,7 @@ int main(int argc, char *argv[]) {
         continue;
       }
       if (strncmp(cmd.argv[0], "\n", 1) == 0) {
+        free_command(cmd);
         continue;
       } else if (strncmp(cmd.argv[0], "exit", 5) == 0) {
         free_command(cmd);

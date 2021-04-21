@@ -10,6 +10,6 @@
 
 #include "command.h"
 
-static int pid_bg_task;
+extern int pid_chld;
 int execCommand(struct command cmd);
 #endif

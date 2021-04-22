@@ -11,5 +11,6 @@
 #include "command.h"
 
 extern int pid_chld;
+extern int fg_pid;
 int execCommand(struct command cmd);
 #endif

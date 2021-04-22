@@ -9,11 +9,16 @@ void mon_handler(int signum, siginfo_t* sinfo, void* data) {
   switch (signum) {
     case SIGCHLD:
       if (sinfo->si_pid == pid_chld) {
-        write(STDOUT_FILENO, "\nBackground job exited\n", 22);
+        write(STDOUT_FILENO, "\nBackground job exited\n", 24);
         pid_chld = 0;
+      } else {
+        write(STDOUT_FILENO, "\nForeground job exited\n", 24);
       }
       break;
     case SIGINT:
+      if (fg_pid> 0) {
+        kill(fg_pid, signum);
+      }
       // TODO
       break;
     case SIGHUP:

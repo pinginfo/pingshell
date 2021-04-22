@@ -1,6 +1,7 @@
 #include "jobs.h"
 
-int pid_chld;
+int pid_chld = 0;
+int fg_pid = 0;
 
 pid_t execCommand(struct command cmd) {
   if (cmd.next_command == NULL) {
@@ -50,8 +51,8 @@ pid_t execCommand(struct command cmd) {
       }
     } else {
       if (!cmd.background_task) {
+        fg_pid = pid;
         wait(0);
-        return 0;
       }
       else {
         pid_chld = pid;

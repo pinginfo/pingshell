@@ -40,24 +40,26 @@ pid_t execCommand(struct command cmd) {
           return -1;
         }
       }
-
+      // tcgetpgrp TODO
+      if (setpgid(getpid(), getpid()) != 0) {
+        fprintf(stderr, "pingshell: %s: setpgid error\n", strerror(errno));
+      }
       if (execvp(cmd.argv[0], cmd.argv) == -1) { 
         fprintf(stderr, "pingshell: %s: command not found\n", cmd.argv[0]);
         return -1;
       }
-    }
-    if (setpgid(pid, pid) != 0) {
-      fprintf(stderr, "pingshell: %s: setpgid error\n", strerror(errno));
-    }
-    if (!cmd.background_task) {
-      wait(0);
-    }
-    else {
-      pid_chld = pid;
-      fprintf(stdout, "[1] %d\n", pid_chld);
-    }
+    } else {
+      if (!cmd.background_task) {
+        wait(0);
+        return 0;
+      }
+      else {
+        pid_chld = pid;
+        fprintf(stdout, "[1] %d\n", pid_chld);
+      }
 
-    return 0;
+      return 0;
+    }
   } else {
     int p[2];
     if (pipe(p) == -1) {
@@ -101,7 +103,7 @@ pid_t execCommand(struct command cmd) {
       fprintf(stderr, "fork 1 = %s\n", strerror(errno));
       return -1;
     } else if (p2 == 0) {
-      if (close(STDIN_FILENO) == -1) { 
+      if (close(STDIN_FILENO) == -1) {
         fprintf(stderr, "close: %s\n", strerror(errno)); 
         return -1;
       } 
@@ -125,12 +127,14 @@ pid_t execCommand(struct command cmd) {
     }
     close(p[0]);
     close(p[1]);
-    if (setpgid(p1, p1) != 0) {
-      fprintf(stderr, "pingshell: %s: setpgid error\n", strerror(errno));
-    }
-    if (setpgid(p2, p1) != 0) {
-      fprintf(stderr, "pingshell: %s: setpgid error\n", strerror(errno));
-    }
+    /*
+       if (setpgid(p1, p1) != 0) {
+       fprintf(stderr, "pingshell: %s: setpgid error\n", strerror(errno));
+       }
+       if (setpgid(p2, p1) != 0) {
+       fprintf(stderr, "pingshell: %s: setpgid error\n", strerror(errno));
+       }
+       */
     wait(0);
     wait(0);
     return 0;

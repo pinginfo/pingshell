@@ -9,20 +9,17 @@ void mon_handler(int signum, siginfo_t* sinfo, void* data) {
   switch (signum) {
     case SIGCHLD:
       if (sinfo->si_pid == pid_chld) {
-        write(STDOUT_FILENO, "\nBackground job exited\n", 24);
+        write(STDOUT_FILENO, "Background job exited\n", 22);
         pid_chld = 0;
-      } else {
-        write(STDOUT_FILENO, "\nForeground job exited\n", 24);
       }
       break;
     case SIGINT:
-      if (fg_pid> 0) {
-        kill(fg_pid, signum);
-      }
-      // TODO
+      if (fg_pid> 0) { kill(-fg_pid, signum); }
       break;
     case SIGHUP:
-      // TODO
+      if (fg_pid> 0) { kill(-fg_pid, signum); }
+      if (pid_chld> 0) { kill(-pid_chld, signum); }
+      exit(0);
       break;
     default:
       break;
@@ -41,10 +38,16 @@ int main(int argc, char *argv[]) {
   struct sigaction sa;
   sa.sa_sigaction = mon_handler;
   sigemptyset(&sa.sa_mask);
-  sigaddset(&sa.sa_mask, SIGUSR1);
-  sigaddset(&sa.sa_mask, SIGTERM);
   sa.sa_flags = SA_RESTART | SA_SIGINFO;
 
+  if (sigaction(SIGTERM, &sa, NULL) == -1) {
+    perror("setting up SIGTERM");
+    return 1;
+  }
+  if (sigaction(SIGQUIT, &sa, NULL) == -1) {
+    perror("setting up SIGQUIT");
+    return 1;
+  }
   if (sigaction(SIGCHLD, &sa, NULL) == -1) {
     perror("setting up SIGCHLD");
     return 1;
@@ -79,6 +82,4 @@ int main(int argc, char *argv[]) {
       free_command(cmd);
     }
   }
-
-  return 0;
 }

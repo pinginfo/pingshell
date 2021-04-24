@@ -7,7 +7,7 @@ void free_command(struct command cmd) {
 
 int bufferToCommand(char *input, struct command *cmd) {
   my_argv result = malloc(sizeof(void*));
-  my_argv result_pipe;
+  my_argv result_pipe = NULL;
   char *buffer;
   size_t nb_args = 0;
   size_t nb_args_pipe = 0;

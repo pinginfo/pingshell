@@ -3,7 +3,8 @@
 int pid_chld = 0;
 int fg_pid = 0;
 
-pid_t execCommand(struct command cmd) {
+int execCommand(struct command cmd) {
+  int status;
   if (cmd.next_command == NULL) {
     pid_t pid = fork();
     if (pid == -1) { 
@@ -17,21 +18,15 @@ pid_t execCommand(struct command cmd) {
           fprintf(stderr, "open: %s\n", strerror(errno)); 
           return -1;
         }
-        if (dup2(out, 1) == -1) {
+        if (dup2(out, STDIN_FILENO) == -1) {
           fprintf(stderr, "dup2: %s\n", strerror(errno)); 
           return -1;
         }
-        if (close(out) == -1) {
-          fprintf(stderr, "close: %s\n", strerror(errno)); 
-          return -1;
-        }
-        if (close(STDOUT_FILENO) == -1) {
-          fprintf(stderr, "close: %s\n", strerror(errno)); 
-          return -1;
-        }
-      } else if (cmd.output != NULL) {
+      }
+      if (cmd.output != NULL) {
+        // Vériifer les droits
         int out = open(cmd.output, O_WRONLY | O_CREAT | O_TRUNC, 0640);
-        if (dup2(out, 1) == -1) {
+        if (dup2(out, STDOUT_FILENO) == -1) {
           fprintf(stderr, "dup2: %s\n", strerror(errno)); 
           return -1;
         }
@@ -52,9 +47,11 @@ pid_t execCommand(struct command cmd) {
     } else {
       if (!cmd.background_task) {
         fg_pid = pid;
-        int status;
-        wait(&status);
-        fprintf(stdout, "Foreground job exited with code %d\n", status);
+        if (waitpid(pid, &status, 0) == -1) {
+          fprintf(stderr, "waitpid : %s\n", strerror(errno));
+        } else {
+          fprintf(stdout, "Foreground job exited with code [%d] %d\n", pid, status);
+        }
       }
       else {
         pid_chld = pid;
@@ -101,7 +98,6 @@ pid_t execCommand(struct command cmd) {
         return -1;
       }
     } else {
-
       p2 = fork();
       if (p2 == -1) {
         fprintf(stderr, "fork 1 = %s\n", strerror(errno));
@@ -132,14 +128,25 @@ pid_t execCommand(struct command cmd) {
           return -1;
         }
       }
-      close(p[0]);
-      close(p[1]);
-      int status;
+      if (close(p[0]) == -1) {
+        fprintf(stderr, "close: %s\n", strerror(errno));
+        return -1;
+      }
+      if (close(p[1]) == -1) {
+        fprintf(stderr, "close: %s\n", strerror(errno));
+        return -1;
+      }
       fg_pid = p1;
-      wait(&status);
-      fprintf(stdout, "Foreground job [1] exited with code %d\n", status);
-      wait(&status);
-      fprintf(stdout, "Foreground job [2] exited with code %d\n", status);
+      if (waitpid(p1, &status, 0) == -1) {
+        fprintf(stderr, "waitpid : %s\n", strerror(errno));
+      } else {
+        fprintf(stdout, "Foreground job [1] %d exited with code %d\n", p1, status);
+      }
+      if (waitpid(p2, &status, 0) == -1) {
+        fprintf(stderr, "waitpid : %s\n", strerror(errno));
+      } else {
+        fprintf(stdout, "Foreground job [2] %d exited with code %d\n", p2, status);
+      }
       return 0;
     }
   }

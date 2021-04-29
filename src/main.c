@@ -9,6 +9,8 @@ void mon_handler(int signum, siginfo_t* sinfo, void* data) {
   switch (signum) {
     case SIGCHLD:
       if (sinfo->si_pid == pid_chld) {
+        int status;
+        waitpid(pid_chld, &status, 0);
         write(STDOUT_FILENO, "Background job exited\n", 22);
         pid_chld = 0;
       }

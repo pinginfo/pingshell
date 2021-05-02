@@ -20,4 +20,10 @@ int moveDir(struct command cmd);
  * Exit the shell and all it's processes
  */
 void exitShell();
+
+
+/**
+ * Print the current directory
+ */
+void printDir();
 #endif

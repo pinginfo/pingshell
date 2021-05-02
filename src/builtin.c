@@ -22,3 +22,10 @@ int moveDir(struct command cmd) {
 void exitShell() {
   kill(getpid(), SIGHUP);
 }
+
+void printDir() {
+  char cwd[PATH_MAX];
+  getcwd(cwd, sizeof(cwd));
+  printf("pingshell# %s ", cwd);
+}
+

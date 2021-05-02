@@ -4,8 +4,7 @@ int pid_chld = 0;
 int fg_pid = 0;
 
 void exit_failure(char* p1, char* p2, char* cmd, int err) {
-  if (err) { fprintf(stderr, "%s %s %s %s\n", p1, cmd, p2, strerror(err)); }
-  else { fprintf(stderr, "%s %s %s\n", p1, cmd, p2); }
+  fprintf(stderr, "%s %s %s %s\n", p1, cmd, p2, strerror(err));
   exit(EXIT_FAILURE);
 }
 
@@ -18,18 +17,18 @@ int execCommand(struct command cmd) {
       return -1;
     } else if (pid == 0) {
       if (cmd.background_task) {
-        int out = open("/dev/null", O_RDONLY, 0640);
+        int out = open("/dev/null", O_RDONLY);
         if (out == -1) { exit_failure("pingshell", "", "open:", errno); }
         if (dup2(out, STDIN_FILENO) == -1) { exit_failure("pingshell:", "", "dup2:", errno); }
       }
       if (cmd.output != NULL) {
-        int out = open(cmd.output, O_WRONLY | O_CREAT | O_TRUNC, 0640); // Check les droits
+        int out = open(cmd.output, O_WRONLY | O_CREAT | O_TRUNC, 0666);
         if (out == -1) { exit_failure("pingshell", "", "open:", errno); }
         if (dup2(out, STDOUT_FILENO) == -1) { exit_failure("pingshell:", "", "dup2:", errno); }
         if (close(out) == -1) { exit_failure("pingshell:", "", "close:", errno); }
       }
-      if (setpgid(getpid(), getpid()) != 0) { exit_failure("pingshell:", strerror(errno), "setpgid error", 0); }
-      if (execvp(cmd.argv[0], cmd.argv) == -1) { exit_failure("pingshell:", cmd.argv[0], "command not found", 0); }
+      if (setpgid(getpid(), getpid()) != 0) { exit_failure("pingshell:", strerror(errno), "setpgid error", errno); }
+      if (execvp(cmd.argv[0], cmd.argv) == -1) { exit_failure("pingshell:", cmd.argv[0], "command not found", errno); }
     } else {
       if (!cmd.background_task) {
         fg_pid = pid;
@@ -62,8 +61,8 @@ int execCommand(struct command cmd) {
       if (dup2(p[1], STDOUT_FILENO) == -1) { exit_failure("pingshell:", "", "dup2:", errno); }
       if (close(p[0]) == -1) { exit_failure("pingshell:", "", "close:", errno); }
       if (close(p[1]) == -1) { exit_failure("pingshell:", "", "close:", errno); }
-      if (setpgid(getpid(), getpid()) != 0) { exit_failure("pingshell:", strerror(errno), "setpgid error", 0); }
-      if (execvp(cmd.argv[0], cmd.argv) == -1) { exit_failure("pingshell:", cmd.argv[0], "command not found", 0); }
+      if (setpgid(getpid(), getpid()) != 0) { exit_failure("pingshell:", strerror(errno), "setpgid error", errno); }
+      if (execvp(cmd.argv[0], cmd.argv) == -1) { exit_failure("pingshell:", cmd.argv[0], "command not found", errno); }
     } else {
       p2 = fork();
       if (p2 == -1) {
@@ -73,8 +72,14 @@ int execCommand(struct command cmd) {
         if (dup2(p[0], STDIN_FILENO) == -1) { exit_failure("pingshell:", "", "dup2:", errno); }
         if (close(p[1]) == -1) { exit_failure("pingshell:", "", "close:", errno); }
         if (close(p[0]) == -1) { exit_failure("pingshell:", "", "close:", errno); }
-        if (setpgid(getpid(), p1) != 0) { exit_failure("pingshell:", strerror(errno), "setpgid error", 0); }
-        if (execvp(cmd.next_command->argv[0], cmd.next_command->argv) == -1) { exit_failure("pingshell:", cmd.argv[0], "command not found", 0); }
+        if (cmd.next_command->output != NULL) {
+          int out = open(cmd.next_command->output, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+          if (out == -1) { exit_failure("pingshell", "", "open:", errno); }
+          if (dup2(out, STDOUT_FILENO) == -1) { exit_failure("pingshell:", "", "dup2:", errno); }
+          if (close(out) == -1) { exit_failure("pingshell:", "", "close:", errno); }
+        }
+        if (setpgid(getpid(), p1) != 0) { exit_failure("pingshell:", strerror(errno), "setpgid error", errno); }
+        if (execvp(cmd.next_command->argv[0], cmd.next_command->argv) == -1) { exit_failure("pingshell:", cmd.next_command->argv[0], "command not found", errno); }
       }
       if (close(p[0]) == -1) {
         fprintf(stderr, "close: %s\n", strerror(errno));

@@ -23,6 +23,7 @@ extern int fg_pid;
  *          - simple command in background
  *          - simple command with a redirection in  a file and in background
  *          - a pipe command (max 2 commands)
+ *          - a pipe command (max 2 commands) with a redirection in a file
  * @return 0 is success, -1 in error
  */
 int execCommand(struct command cmd);

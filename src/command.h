@@ -19,6 +19,13 @@ typedef struct command {
 } command;
 
 /**
+ * Print the command for debugging
+ *
+ * @param A command
+ */
+void print_command(struct command cmd);
+
+/**
  * Free all pointers of the command
  *
  * @param A command

@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#define debug 0
+
 int main(int argc, char *argv[]) {
   char buff[SIZE];
   struct command cmd;
@@ -21,6 +23,9 @@ int main(int argc, char *argv[]) {
         free_command(cmd);
         continue;
       }
+#if debug==1
+      print_command(cmd);
+#endif
       if (strncmp(cmd.argv[0], "\n", 1) == 0) {
         free_command(cmd);
         continue;

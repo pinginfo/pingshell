@@ -3,6 +3,12 @@
 int pid_chld = 0;
 int fg_pid = 0;
 
+void exit_failure(char* p1, char* p2, char* cmd, int err) {
+  if (err) { fprintf(stderr, "%s %s %s %s\n", p1, cmd, p2, strerror(err)); }
+  else { fprintf(stderr, "%s %s %s\n", p1, cmd, p2); }
+  exit(EXIT_FAILURE);
+}
+
 int execCommand(struct command cmd) {
   int status;
   if (cmd.next_command == NULL) {
@@ -10,40 +16,20 @@ int execCommand(struct command cmd) {
     if (pid == -1) { 
       fprintf(stderr, "fork: %s\n", strerror(errno));
       return -1;
-    }
-    else if (pid == 0) {
+    } else if (pid == 0) {
       if (cmd.background_task) {
-        int out = open("/dev/null", O_WRONLY, 0640);
-        if (out == -1) {
-          fprintf(stderr, "open: %s\n", strerror(errno)); 
-          exit(EXIT_FAILURE);
-        }
-        if (dup2(out, STDIN_FILENO) == -1) {
-          fprintf(stderr, "dup2: %s\n", strerror(errno)); 
-          exit(EXIT_FAILURE);
-        }
+        int out = open("/dev/null", O_RDONLY, 0640);
+        if (out == -1) { exit_failure("pingshell", "", "open:", errno); }
+        if (dup2(out, STDIN_FILENO) == -1) { exit_failure("pingshell:", "", "dup2:", errno); }
       }
       if (cmd.output != NULL) {
-        // Vériifer les droits
-        int out = open(cmd.output, O_WRONLY | O_CREAT | O_TRUNC, 0640);
-        if (dup2(out, STDOUT_FILENO) == -1) {
-          fprintf(stderr, "dup2: %s\n", strerror(errno)); 
-          exit(EXIT_FAILURE);
-        }
-        if (close(out) == -1) {
-          fprintf(stderr, "close: %s\n", strerror(errno)); 
-          exit(EXIT_FAILURE);
-        }
+        int out = open(cmd.output, O_WRONLY | O_CREAT | O_TRUNC, 0640); // Check les droits
+        if (out == -1) { exit_failure("pingshell", "", "open:", errno); }
+        if (dup2(out, STDOUT_FILENO) == -1) { exit_failure("pingshell:", "", "dup2:", errno); }
+        if (close(out) == -1) { exit_failure("pingshell:", "", "close:", errno); }
       }
-      // tcgetpgrp TODO
-      if (setpgid(getpid(), getpid()) != 0) {
-        fprintf(stderr, "pingshell: %s: setpgid error\n", strerror(errno));
-        exit(EXIT_FAILURE);
-      }
-      if (execvp(cmd.argv[0], cmd.argv) == -1) { 
-        fprintf(stderr, "pingshell: %s: command not found\n", cmd.argv[0]);
-        exit(EXIT_FAILURE);
-      }
+      if (setpgid(getpid(), getpid()) != 0) { exit_failure("pingshell:", strerror(errno), "setpgid error", 0); }
+      if (execvp(cmd.argv[0], cmd.argv) == -1) { exit_failure("pingshell:", cmd.argv[0], "command not found", 0); }
     } else {
       if (!cmd.background_task) {
         fg_pid = pid;
@@ -73,52 +59,22 @@ int execCommand(struct command cmd) {
       fprintf(stderr, "fork 1 = %s\n", strerror(errno));
       return -1;
     } else if (p1 == 0) {
-      if (dup2(p[1], STDOUT_FILENO) == -1) {
-        fprintf(stderr, "dup: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-      }
-      if (close(p[0]) == -1) {
-        fprintf(stderr, "close: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-      }
-      if (close(p[1]) == -1) {
-        fprintf(stderr, "close: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-      }
-      if (setpgid(getpid(), getpid()) != 0) {
-        fprintf(stderr, "pingshell: %s: setpgid error\n", strerror(errno));
-        exit(EXIT_FAILURE);
-      }
-      if (execvp(cmd.argv[0], cmd.argv) == -1) {
-        fprintf(stderr, "pingshell: %s: command not found, error : %s\n",  cmd.argv[0], strerror(errno));
-        exit(EXIT_FAILURE);
-      }
+      if (dup2(p[1], STDOUT_FILENO) == -1) { exit_failure("pingshell:", "", "dup2:", errno); }
+      if (close(p[0]) == -1) { exit_failure("pingshell:", "", "close:", errno); }
+      if (close(p[1]) == -1) { exit_failure("pingshell:", "", "close:", errno); }
+      if (setpgid(getpid(), getpid()) != 0) { exit_failure("pingshell:", strerror(errno), "setpgid error", 0); }
+      if (execvp(cmd.argv[0], cmd.argv) == -1) { exit_failure("pingshell:", cmd.argv[0], "command not found", 0); }
     } else {
       p2 = fork();
       if (p2 == -1) {
         fprintf(stderr, "fork 1 = %s\n", strerror(errno));
         return -1;
       } else if (p2 == 0) {
-        if (dup2(p[0], STDIN_FILENO) == -1) {
-          fprintf(stderr, "dup: %s\n", strerror(errno));
-          exit(EXIT_FAILURE);
-        }
-        if (close(p[1]) == -1) {
-          fprintf(stderr, "close: %s\n", strerror(errno));
-          exit(EXIT_FAILURE);
-        }
-        if (close(p[0]) == -1) {
-          fprintf(stderr, "close: %s\n", strerror(errno));
-          exit(EXIT_FAILURE);
-        }
-        if (setpgid(getpid(), p1) != 0) {
-          fprintf(stderr, "pingshell: %s: setpgid error\n", strerror(errno));
-          exit(EXIT_FAILURE);
-        }
-        if (execvp(cmd.next_command->argv[0], cmd.next_command->argv) == -1) {
-          fprintf(stderr, "pingshell: %s: command not found, error : %s\n",  cmd.next_command->argv[0], strerror(errno));
-          exit(EXIT_FAILURE);
-        }
+        if (dup2(p[0], STDIN_FILENO) == -1) { exit_failure("pingshell:", "", "dup2:", errno); }
+        if (close(p[1]) == -1) { exit_failure("pingshell:", "", "close:", errno); }
+        if (close(p[0]) == -1) { exit_failure("pingshell:", "", "close:", errno); }
+        if (setpgid(getpid(), p1) != 0) { exit_failure("pingshell:", strerror(errno), "setpgid error", 0); }
+        if (execvp(cmd.next_command->argv[0], cmd.next_command->argv) == -1) { exit_failure("pingshell:", cmd.argv[0], "command not found", 0); }
       }
       if (close(p[0]) == -1) {
         fprintf(stderr, "close: %s\n", strerror(errno));
@@ -132,16 +88,10 @@ int execCommand(struct command cmd) {
       if (waitpid(p1, &status, 0) == -1) {
         fprintf(stderr, "waitpid : %s\n", strerror(errno));
         return -1;
-      } else {
-        fprintf(stdout, "Foreground job [1] %d exited with code %d\n", p1, status);
-      }
-      if (waitpid(p2, &status, 0) == -1) {
-        fprintf(stderr, "waitpid : %s\n", strerror(errno));
-      } else {
-        fprintf(stdout, "Foreground job [2] %d exited with code %d\n", p2, status);
-      }
+      } else { fprintf(stdout, "Foreground job [1] %d exited with code %d\n", p1, status); }
+      if (waitpid(p2, &status, 0) == -1) { fprintf(stderr, "waitpid : %s\n", strerror(errno)); }
+      else { fprintf(stdout, "Foreground job [2] %d exited with code %d\n", p2, status); }
     }
   }
   return 0;
 }
-

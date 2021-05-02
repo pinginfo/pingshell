@@ -44,23 +44,23 @@ int main(int argc, char *argv[]) {
 
   if (sigaction(SIGTERM, &sa, NULL) == -1) {
     perror("setting up SIGTERM");
-    return 1;
+    exit(EXIT_FAILURE);
   }
   if (sigaction(SIGQUIT, &sa, NULL) == -1) {
     perror("setting up SIGQUIT");
-    return 1;
+    exit(EXIT_FAILURE);
   }
   if (sigaction(SIGCHLD, &sa, NULL) == -1) {
     perror("setting up SIGCHLD");
-    return 1;
+    exit(EXIT_FAILURE);
   }
   if (sigaction(SIGINT, &sa, NULL) == -1) {
     perror("setting up SIGINT");
-    return 1;
+    exit(EXIT_FAILURE);
   }
   if (sigaction(SIGHUP, &sa, NULL) == -1) {
     perror("setting up SIGHUP");
-    return 1;
+    exit(EXIT_FAILURE);
   }
 
   while(1) {

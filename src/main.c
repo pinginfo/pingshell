@@ -9,7 +9,7 @@
 #define debug 0
 
 int main(int argc, char *argv[]) {
-  char buff[SIZE];
+  char buff[STRING_MAX_SIZE];
   struct command cmd;
   struct sigaction sa;
 
@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
 
   while(1) {
     printDir();
-    if (fgets(buff, SIZE, stdin) != NULL) {
+    if (fgets(buff, STRING_MAX_SIZE, stdin) != NULL) {
       if (bufferToCommand(buff, &cmd) == -1) {
         fprintf(stderr, "cannot read the command\n");
         free_command(cmd);

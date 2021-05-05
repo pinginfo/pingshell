@@ -29,8 +29,9 @@ int bufferToCommand(char *input, struct command *cmd) {
 
   buffer = strtok(input, s);
   while (buffer != NULL) {
-    if (strncmp(buffer, "|", SIZE) == 0) {
+    if (strncmp(buffer, "|", STRING_MAX_SIZE) == 0) {
       static struct command pipe_cmd;
+      //struct command pipe_cmd;
       pipe_cmd.next_command = NULL;
       pipe_cmd.output = NULL;
       pipe_cmd.background_task = 0;
@@ -40,14 +41,14 @@ int bufferToCommand(char *input, struct command *cmd) {
       buffer = strtok(NULL, s);
       while (buffer != NULL) {
         if (result_pipe == NULL) { result_pipe = malloc(sizeof(void*)); }
-        if (strncmp(buffer, ">", SIZE) == 0) {
+        if (strncmp(buffer, ">", STRING_MAX_SIZE) == 0) {
           buffer = strtok(NULL, s);
           pipe_cmd.output = buffer;
           pipe_cmd.argc = (nb_args_pipe - 1);
           pipe_cmd.argv = result_pipe;
           cmd->next_command = &pipe_cmd;
           break;
-        } else if (strncmp(buffer, "&", SIZE) == 0) {
+        } else if (strncmp(buffer, "&", STRING_MAX_SIZE) == 0) {
           pipe_cmd.background_task = 1;
           pipe_cmd.argc = (nb_args_pipe - 1);
           pipe_cmd.argv = result_pipe;
@@ -64,11 +65,11 @@ int bufferToCommand(char *input, struct command *cmd) {
       pipe_cmd.argv = result_pipe;
       cmd->next_command = &pipe_cmd;
       break;
-    } else if (strncmp(buffer, ">", SIZE) == 0) {
+    } else if (strncmp(buffer, ">", STRING_MAX_SIZE) == 0) {
       buffer = strtok(NULL, s);
       cmd->output = buffer;
       break;
-    } else if (strncmp(buffer, "&", SIZE) == 0) {
+    } else if (strncmp(buffer, "&", STRING_MAX_SIZE) == 0) {
       cmd->background_task = 1;
       break;
     } else {

@@ -6,7 +6,7 @@
 #include <linux/limits.h>
 #include <string.h>
 
-#define SIZE 255 
+#define STRING_MAX_SIZE 255
 
 typedef char** my_argv;
 

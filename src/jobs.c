@@ -43,6 +43,7 @@ int execCommand(struct command cmd) {
           return -1;
         } else {
           fprintf(stdout, "Foreground job exited with code [%d] %d\n", pid, status);
+          fg_pid = 0;
         }
       }
       else {

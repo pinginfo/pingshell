@@ -24,6 +24,8 @@ extern int fg_pid;
  *          - simple command with a redirection in  a file and in background
  *          - a pipe command (max 2 commands)
  *          - a pipe command (max 2 commands) with a redirection in a file
+ * @note Because of setgpid(), commands such as vim, htop or even launching 
+ *        the shell in the shell do not work!
  * @return 0 is success, -1 in error
  */
 int execCommand(struct command cmd);

@@ -41,7 +41,12 @@ void free_command(struct command cmd);
  *          - simple command in background
  *          - simple command with a redirection in  a file and in background
  *          - a pipe command (max 2 commands)
+ *          - a pipe command (max 2 commands) with a redirection in a file
+ *          - a pipe command (max 2 commands) in background
  *
+ * @note Be careful to put spaces :
+ *        sleep 1 | sleep 1 --> Ok
+ *        sleep 1 |sleep 1 ---> Not ok
  * @param The intial string, the command to return
  * @return 0 is success, -1 in error && return the command in the second argument
  */

@@ -3,6 +3,12 @@
 int pid_chld = 0;
 int fg_pid = 0;
 
+/**
+ *  Print the error and exit the processus
+ *
+ * @param: p1/p2 are the string to concatenate with
+ *          the command name and the error
+ */
 void exit_failure(char* p1, char* p2, char* cmd, int err) {
   fprintf(stderr, "%s %s %s %s\n", p1, cmd, p2, strerror(err));
   exit(EXIT_FAILURE);

@@ -19,7 +19,9 @@ int moveDir(struct command cmd) {
 }
 
 void exitShell() {
-  kill(getpid(), SIGHUP);
+  if (kill(getpid(), SIGHUP) == -1) {
+    fprintf(stderr, "pingshell: kill error %s\n", strerror(errno));
+  }
 }
 
 void printDir() {

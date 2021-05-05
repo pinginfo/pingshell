@@ -1,8 +1,9 @@
 CC = gcc
 OBJS = main.o
-COMPILE_OPTS = -g -Wall -c
-OPTIM_OPTS = 
+COMPILE_OPTS = -g -Wall -c -Wextra -std=c11
+OPTIM_OPTS =
 SANITIZERS = -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer
+LIBS= -D_POSIX_C_SOURCE=200809L
 
 SRCDIR = src
 OBJDIR = obj
@@ -27,7 +28,7 @@ $(BIN): $(OBJ)
 	$(CC) $^ -o $@ $(OPTIM_OPTS) $(SANITIZERS)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
-	$(CC) $(COMPILE_OPTS) $(OPTIM_OPTS) $(SANITIZERS) -c -MMD -MP -o $@ $< 
+	$(CC) $(COMPILE_OPTS) $(OPTIM_OPTS) $(SANITIZERS) -c -MMD -MP -o $@ $< $(LIBS)
 
 .PHONY = clean
 

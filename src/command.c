@@ -15,6 +15,10 @@ void print_command(struct command cmd) {
 
 int bufferToCommand(char *input, struct command *cmd) {
   my_argv result = malloc(sizeof(void*));
+  if (result == NULL) {
+    fprintf(stderr, "malloc failed \n");
+    exit(EXIT_FAILURE);
+  }
   my_argv result_pipe = NULL;
   char *buffer;
   size_t nb_args = 0;
@@ -35,11 +39,21 @@ int bufferToCommand(char *input, struct command *cmd) {
       pipe_cmd.output = NULL;
       pipe_cmd.background_task = 0;
       result = realloc(result, sizeof(void*) * (nb_args + 1));
+      if (result == NULL) {
+        fprintf(stderr, "malloc failed \n");
+        exit(EXIT_FAILURE);
+      }
       result[nb_args] = NULL;
 
       buffer = strtok(NULL, s);
       while (buffer != NULL) {
-        if (result_pipe == NULL) { result_pipe = malloc(sizeof(void*)); }
+        if (result_pipe == NULL) {
+          result_pipe = malloc(sizeof(void*));
+          if (result_pipe == NULL) {
+            fprintf(stderr, "malloc failed \n");
+            exit(EXIT_FAILURE);
+          }
+        }
         if (strncmp(buffer, ">", STRING_MAX_SIZE) == 0) {
           buffer = strtok(NULL, s);
           pipe_cmd.output = buffer;
@@ -55,6 +69,10 @@ int bufferToCommand(char *input, struct command *cmd) {
           break;
         } else {
           result_pipe = realloc(result_pipe, sizeof(void*) * (nb_args_pipe + 1));
+          if (result_pipe == NULL) {
+            fprintf(stderr, "malloc failed \n");
+            exit(EXIT_FAILURE);
+          }
           result_pipe[nb_args_pipe] = buffer;
           nb_args_pipe++;
         }
@@ -73,6 +91,10 @@ int bufferToCommand(char *input, struct command *cmd) {
       break;
     } else {
       result = realloc(result, sizeof(void*) * (nb_args + 1));
+      if (result == NULL) {
+        fprintf(stderr, "malloc failed \n");
+        exit(EXIT_FAILURE);
+      }
       result[nb_args] = buffer;
       nb_args++;
     }

@@ -12,16 +12,16 @@ void my_handler(int signum, siginfo_t* sinfo, void* data) {
       if (sinfo->si_pid == pid_chld) {
         int status;
         if (waitpid(pid_chld, &status, 0) == -1) { perror("waitpid"); }
-        write(STDOUT_FILENO, "Background job exited\n", 22);
+        if (write(STDOUT_FILENO, "Background job exited\n", 22) == -1) { perror("write"); }
         pid_chld = 0;
       }
       break;
     case SIGINT:
-      if (fg_pid> 0) { kill(-fg_pid, signum); }
+      if (fg_pid> 0) { if (kill(-fg_pid, signum) == -1) { perror("kill"); } }
       break;
     case SIGHUP:
-      if (fg_pid> 0) { kill(-fg_pid, signum); }
-      if (pid_chld> 0) { kill(-pid_chld, signum); }
+      if (fg_pid> 0) { if (kill(-fg_pid, signum) == -1) { perror("kill"); } }
+      if (pid_chld> 0) { if (kill(-pid_chld, signum) == -1) { perror("kill"); }; }
       exit(0);
       break;
     default:

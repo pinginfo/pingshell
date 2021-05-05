@@ -8,7 +8,7 @@
 
 #define debug 0
 
-int main(int argc, char *argv[]) {
+int main() {
   char buff[STRING_MAX_SIZE];
   struct command cmd;
   struct sigaction sa;
@@ -34,7 +34,9 @@ int main(int argc, char *argv[]) {
         exitShell();
       } else if (strncmp(cmd.argv[0], "cd", 2) == 0) { moveDir(cmd); }
       else {
-        execCommand(cmd);
+        if (execCommand(cmd) == -1) {
+          fprintf(stderr, "error execCommand");
+        }
       }
       free_command(cmd);
     }

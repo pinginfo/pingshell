@@ -2,6 +2,7 @@
 #define SIGNALS_H
 #include <signal.h>
 #include <stdlib.h>
+#include <errno.h>
 #include "jobs.h"
 
 /**

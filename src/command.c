@@ -31,7 +31,6 @@ int bufferToCommand(char *input, struct command *cmd) {
   while (buffer != NULL) {
     if (strncmp(buffer, "|", STRING_MAX_SIZE) == 0) {
       static struct command pipe_cmd;
-      //struct command pipe_cmd;
       pipe_cmd.next_command = NULL;
       pipe_cmd.output = NULL;
       pipe_cmd.background_task = 0;
